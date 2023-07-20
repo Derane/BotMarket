@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="c5b034d5-49fd-4959-b1bf-d86c2ec2bf3c" name="bots">
+        <fileTransfer rootFolder="/var/www/aws/bots/2" accessType="SFTP" host="75.101.222.113" port="22" sshConfigId="58c5e6e2-0826-43d0-8bd1-47308159788b" sshConfig="ec2-user@75.101.222.113:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
