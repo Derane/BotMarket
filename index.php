@@ -37,4 +37,11 @@ if ($text == '/start') {
         'text' => $phrases['inline_keyboard'],
         'reply_markup' => new Telegram\Bot\Keyboard\Keyboard($keyboard1)
     ]);
+} elseif (isset($update['message']['web_app_data']['button_text'])) {
+    $btn = $update['message']['web_app_data']['button_text'];
+    $data = json_decode($update['message']['web_app_data']['data'], 1);
+    $telegram->sendMessage([
+        'chat_id' => $chat_id,
+        'text' =>  "Button ${btn} pressed"
+    ]);
 }
