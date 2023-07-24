@@ -1,6 +1,5 @@
 <?php
 
-
 function debug($data, $log = true): void
 {
     if ($log) {
@@ -17,4 +16,19 @@ function send_request(string $url): mixed
         false,
         stream_context_create(['http' => ['ignore_errors' => true]])
     ));
+}
+
+function check_chat_id(int $chat_id): bool
+{
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM subscribers WHERE chat_id = ?");
+    $stmt->execute([$chat_id]);
+    return (bool)$stmt->fetchColumn();
+}
+
+function add_subscriber(int $chat_id, array $data): bool
+{
+    global $pdo;
+    $stmt = $pdo->prepare("INSERT INTO subscribers (chat_id, name, email) VALUES (?, ?, ?)");
+    return $stmt->execute([$chat_id, $data['name'], $data['email']]);
 }

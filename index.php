@@ -1,10 +1,10 @@
 <?php
 
-error_reporting(-1);
-ini_set('display_errors', 0);
-ini_set('log_errors', 'on');
-ini_set('error_log', __DIR__ . '/errors.log');
+error_reporting(E_ALL);
 
+ini_set('log_errors', 1);
+
+ini_set('error_log', 'errors_log');
 
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config.php';
@@ -14,10 +14,15 @@ require_once __DIR__ . '/functions.php';
 
 /**
  * @var array $phrases
+ * @var array $inline_keyboard1
+ * @var array $keyboard1
+ * @var array $keyboard2
  */
+
 $telegram = new \Telegram\Bot\Api(TOKEN);
 $update = $telegram->getWebhookUpdate();
 debug($update);
+
 $chat_id = $update['message']['chat']['id'] ?? 0;
 $text = $update['message']['text'] ?? '';
 $name = $update['message']['from']['first_name'] ?? 'Guest';
@@ -27,21 +32,51 @@ if (!$chat_id) {
 }
 
 if ($text == '/start') {
+    $keyboard = check_chat_id($chat_id) ? $keyboard2 : $keyboard1;
     $telegram->sendMessage([
         'chat_id' => $chat_id,
         'text' => sprintf($phrases['start'], $name),
-        'reply_markup' => new Telegram\Bot\Keyboard\Keyboard($keyboard)
+        'parse_mode' => 'HTML',
+        'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($keyboard),
     ]);
     $telegram->sendMessage([
         'chat_id' => $chat_id,
         'text' => $phrases['inline_keyboard'],
-        'reply_markup' => new Telegram\Bot\Keyboard\Keyboard($keyboard1)
+        'parse_mode' => 'HTML',
+        'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($inline_keyboard1),
     ]);
-} elseif (isset($update['message']['web_app_data']['button_text'])) {
+} elseif (isset($update['message']['web_app_data'])) {
     $btn = $update['message']['web_app_data']['button_text'];
     $data = json_decode($update['message']['web_app_data']['data'], 1);
+
+    if (!check_chat_id($chat_id) && !empty($data['name']) && !empty($data['email'])) {
+        if (add_subscriber($chat_id, $data)) {
+            $telegram->sendMessage([
+                'chat_id' => $chat_id,
+                'text' => $phrases['success_subscribe'],
+                'parse_mode' => 'HTML',
+                'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($keyboard2),
+            ]);
+        } else {
+            $telegram->sendMessage([
+                'chat_id' => $chat_id,
+                'text' => $phrases['error_subscribe'],
+                'parse_mode' => 'HTML',
+                'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($keyboard1),
+            ]);
+        }
+    } else {
+        $telegram->sendMessage([
+            'chat_id' => $chat_id,
+            'text' => $phrases['error'],
+            'parse_mode' => 'HTML',
+            'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($keyboard1),
+        ]);
+    }
+} else {
     $telegram->sendMessage([
         'chat_id' => $chat_id,
-        'text' =>  "Button ${btn} pressed"
+        'text' => $phrases['error'],
+        'parse_mode' => 'HTML',
     ]);
 }
