@@ -45,6 +45,22 @@ if ($text == '/start') {
         'parse_mode' => 'HTML',
         'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($inline_keyboard1),
     ]);
+} elseif ($text == $phrases['btn_unsubscribe']) {
+    if (remove_subscriber($chat_id)) {
+        $telegram->sendMessage([
+            'chat_id' => $chat_id,
+            'text' => $phrases['success_unsubscribe'],
+            'parse_mode' => 'HTML',
+            'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($keyboard1),
+        ]);
+    } else {
+        $telegram->sendMessage([
+            'chat_id' => $chat_id,
+            'text' => $phrases['error_unsubscribe'],
+            'parse_mode' => 'HTML',
+            'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($keyboard1),
+        ]);
+    }
 } elseif (isset($update['message']['web_app_data'])) {
     $btn = $update['message']['web_app_data']['button_text'];
     $data = json_decode($update['message']['web_app_data']['data'], 1);
