@@ -32,9 +32,22 @@ function add_subscriber(int $chat_id, array $data): bool
     $stmt = $pdo->prepare("INSERT INTO subscribers (chat_id, name, email) VALUES (?, ?, ?)");
     return $stmt->execute([$chat_id, $data['name'], $data['email']]);
 }
+
 function remove_subscriber(int $chat_id): bool
 {
     global $pdo;
     $stmt = $pdo->prepare("DELETE FROM subscribers WHERE chat_id = ?");
     return $stmt->execute([$chat_id]);
+}
+
+function get_products(int $start, int $per_page): array
+{
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT * FROM products LIMIT $start, $per_page");
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+function get_start(int $page, int $per_page): int {
+    return ($page - 1) * $per_page;
 }
