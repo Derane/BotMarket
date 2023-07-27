@@ -4,9 +4,18 @@ require_once __DIR__ . '/../functions.php';
 
 $per_page = 6;
 if (isset($_GET['page'])) {
+    $page = (max((int)$_GET['page'], 1));
+    $start = get_start($page, $per_page);
+    $products = get_products($start, $per_page);
+    ob_start();
+    foreach ($products as $product){
+        require __DIR__ . '/product_tpl.php';
 
+    }
+    $html = ob_get_clean();
+    echo $html;
 } else {
-    $page = 2;
+    $page = 1;
     $start = get_start($page, $per_page);
     $products = get_products($start, $per_page);
 }
@@ -106,6 +115,7 @@ if (isset($_GET['page'])) {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="main.js"></script>
 
 </body>
 </html>
