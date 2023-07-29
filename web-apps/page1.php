@@ -4,16 +4,19 @@ require_once __DIR__ . '/../functions.php';
 
 $per_page = 6;
 if (isset($_GET['page'])) {
-    $page = (max((int)$_GET['page'], 1));
+    $page = (int)$_GET['page'];
+    if ($page < 1) {
+        $page = 1;
+    }
     $start = get_start($page, $per_page);
     $products = get_products($start, $per_page);
     ob_start();
-    foreach ($products as $product){
+    foreach ($products as $product) {
         require __DIR__ . '/product_tpl.php';
-
     }
     $html = ob_get_clean();
     echo $html;
+    die;
 } else {
     $page = 1;
     $start = get_start($page, $per_page);
