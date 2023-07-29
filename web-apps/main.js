@@ -25,3 +25,37 @@ loaderBtn.addEventListener('click', () => {
         loaderImg.classList.remove('d-inline-block');
     }, 1000);
 });
+
+function getCart(setCar = false) {
+    if (setCar) {
+        localStorage.setItem('cart', JSON.stringify(setCar))
+
+    }
+    return localStorage.getItem('cart')
+        ? JSON.parse(localStorage.getItem('cart'))
+        : {};
+}
+
+function addToCart(product) {
+    let id = product.id;
+    if (id in cart) {
+        cart[id]['gty'] += 1;
+    } else {
+        cart[id] = product;
+        cart[id]['gty'] = 1;
+    }
+    getCart(cart);
+}
+
+let cart = getCart();
+
+productsContainer.addEventListener('click', (e) => {
+    if (e.target.classList.contains('add2cart')) {
+        e.preventDefault();
+        e.target.classList.add('animate_rubberBand');
+        addToCart(JSON.parse(e.target.dataset.product));
+        setTimeout(() => {
+            e.target.classList.remove('animate_rubberBand');
+        }, 1000)
+    }
+});

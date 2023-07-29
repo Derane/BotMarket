@@ -13,7 +13,7 @@
                 <?= $product['price'] ?>$
             </p>
             <div class="d-grid gap-2 mt-2">
-                <button class="btn btn-warning add2cart"
+                <button class="btn btn-warning add2cart animate__animated"
                         data-product='<?= json_encode($product) ?>'>ADD
                 </button>
             </div>
