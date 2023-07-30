@@ -4,7 +4,7 @@ const loaderImg = document.getElementById('loader-img');
 let page = 1;
 
 async function getProducts() {
-    const res = await fetch(`page1.php?page=${page}`);
+    const res = await fetch(`page2.php?page=${page}`);
     return res.text();
 }
 
@@ -26,36 +26,47 @@ loaderBtn.addEventListener('click', () => {
     }, 1000);
 });
 
-function getCart(setCar = false) {
-    if (setCar) {
-        localStorage.setItem('cart', JSON.stringify(setCar))
-
+function getCart(setCart = false) {
+    if (setCart) {
+        localStorage.setItem('cart', JSON.stringify(setCart));
     }
-    return localStorage.getItem('cart')
-        ? JSON.parse(localStorage.getItem('cart'))
-        : {};
+    return localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')) : {};
 }
 
-function addToCart(product) {
+function add2Cart(product) {
     let id = product.id;
     if (id in cart) {
-        cart[id]['gty'] += 1;
+        // console.log(cart[id]['qty'], id);
+        cart[id]['qty'] += 1;
     } else {
         cart[id] = product;
-        cart[id]['gty'] = 1;
+        cart[id]['qty'] = 1;
     }
     getCart(cart);
+    getCartSum(cart);
+}
+
+function getCartSum(items) {
+    let cartSum = Object.entries(items).reduce(function (total, values) {
+        const [key, value] = values;
+        console.log(value);
+        return isNaN(total + (value['qty'] * value['price'])) ? 0 : total + (value['qty'] * value['price']);
+    }, 0);
+    document.querySelector('.cart-sum').innerText = cartSum + '$';
+    return cartSum;
 }
 
 let cart = getCart();
+getCartSum(cart);
 
 productsContainer.addEventListener('click', (e) => {
     if (e.target.classList.contains('add2cart')) {
         e.preventDefault();
-        e.target.classList.add('animate_rubberBand');
-        addToCart(JSON.parse(e.target.dataset.product));
+        e.target.classList.add('animate__rubberBand');
+        // console.log(JSON.parse(e.target.dataset.product));
+        add2Cart(JSON.parse(e.target.dataset.product));
         setTimeout(() => {
-            e.target.classList.remove('animate_rubberBand');
-        }, 1000)
+            e.target.classList.remove('animate__rubberBand');
+        }, 1000);
     }
 });
