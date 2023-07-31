@@ -4,7 +4,7 @@ const loaderImg = document.getElementById('loader-img');
 let page = 1;
 
 async function getProducts() {
-    const res = await fetch(`page2.php?page=${page}`);
+    const res = await fetch(`page1.php?page=${page}`);
     return res.text();
 }
 
@@ -21,7 +21,9 @@ loaderBtn.addEventListener('click', () => {
     loaderImg.classList.add('d-inline-block');
     setTimeout(() => {
         page++;
-        showProducts();
+        showProducts().then(() => {
+            productQty(cart);
+        })
         loaderImg.classList.remove('d-inline-block');
     }, 1000);
 });
@@ -36,7 +38,6 @@ function getCart(setCart = false) {
 function add2Cart(product) {
     let id = product.id;
     if (id in cart) {
-        // console.log(cart[id]['qty'], id);
         cart[id]['qty'] += 1;
     } else {
         cart[id] = product;
@@ -44,6 +45,7 @@ function add2Cart(product) {
     }
     getCart(cart);
     getCartSum(cart);
+    productQty(cart);
 }
 
 function getCartSum(items) {
@@ -55,10 +57,21 @@ function getCartSum(items) {
     document.querySelector('.cart-sum').innerText = cartSum + '$';
     return cartSum;
 }
+function productQty(items) {
+    document.querySelectorAll('.product-cart-qty').forEach(item => {
+        let id = item.dataset.id;
+        if (id in items) {
+            item.innerText = items[id]['qty'];
+        } else {
+            item.innerText = '';
 
+        }
+    })
+
+}
 let cart = getCart();
 getCartSum(cart);
-
+productQty(cart);
 productsContainer.addEventListener('click', (e) => {
     if (e.target.classList.contains('add2cart')) {
         e.preventDefault();
