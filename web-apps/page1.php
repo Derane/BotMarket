@@ -33,6 +33,7 @@ if (isset($_GET['page'])) {
     <script src="telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="main.css">
+    <script src="telegram-web-app.js"></script>
 </head>
 <body>
 
