@@ -112,9 +112,14 @@ function cartContent(items) {
 }
 
 let cart = getCart();
-getCartSum(cart);
-productQty(cart);
-cartContent(cart)
+
+function updateCart() {
+    getCartSum(cart);
+    productQty(cart);
+    cartContent(cart)
+}
+
+updateCart();
 productsContainer.addEventListener('click', (e) => {
     if (e.target.classList.contains('add2cart')) {
         e.preventDefault();
@@ -126,3 +131,15 @@ productsContainer.addEventListener('click', (e) => {
         }, 1000);
     }
 });
+cartTable.addEventListener('click', (ev) => {
+    const target = ev.target.closest('.del-item');
+    if (target) {
+        let id = target.parentElement.dataset.id;
+        target.parentElement.parentElement.classList.add('animate__zoomOut');
+        setTimeout(() => {
+            delete cart[id];
+            getCart(true);
+            updateCart();
+        }, 300)
+    }
+})
