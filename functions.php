@@ -9,13 +9,13 @@ function debug($data, $log = true): void
     }
 }
 
-function send_request(string $url): mixed
+function send_request($method = '', $params = []): mixed
 {
-    return json_decode(file_get_contents(
-        $url,
-        false,
-        stream_context_create(['http' => ['ignore_errors' => true]])
-    ));
+    $url = BASE_URL . $method;
+    if (!empty($params)) {
+        $url .= '?' . http_build_query($params);
+    }
+    return json_decode(file_get_contents($url));
 }
 
 function check_chat_id(int $chat_id): bool
@@ -33,7 +33,7 @@ function add_subscriber(int $chat_id, array $data): bool
     return $stmt->execute([$chat_id, $data['name'], $data['email']]);
 }
 
-function remove_subscriber(int $chat_id): bool
+function delete_subscriber(int $chat_id): bool
 {
     global $pdo;
     $stmt = $pdo->prepare("DELETE FROM subscribers WHERE chat_id = ?");
@@ -48,6 +48,7 @@ function get_products(int $start, int $per_page): array
     return $stmt->fetchAll();
 }
 
-function get_start(int $page, int $per_page): int {
+function get_start(int $page, int $per_page): int
+{
     return ($page - 1) * $per_page;
 }

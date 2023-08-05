@@ -1,5 +1,13 @@
 {
-    "require": {
-        "telegram-bot/api": "^2.4"
+  "require": {
+    "phpmailer/phpmailer": "^6.8",
+    "irazasyed/telegram-bot-sdk": "^3.13",
+    "ext-pdo": "*",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "classes\\": "classes"
     }
+  }
 }

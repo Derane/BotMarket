@@ -4,11 +4,12 @@ tg.expand();
 const productsContainer = document.getElementById('products-list');
 const loaderBtn = document.getElementById('loader-btn');
 const loaderImg = document.getElementById('loader-img');
-const cartTable = document.querySelector('.table');
+const cartTable = document.querySelector('table');
 let page = 1;
+let cart = getCart();
 
 async function getProducts() {
-    const res = await fetch(`page1.php?page=${page}`);
+    const res = await fetch(`page2.php?page=${page}`);
     return res.text();
 }
 
@@ -25,9 +26,10 @@ loaderBtn.addEventListener('click', () => {
     loaderImg.classList.add('d-inline-block');
     setTimeout(() => {
         page++;
-        showProducts().then(() => {
-            productQty(cart);
-        })
+        showProducts()
+            .then(() => {
+                productQty(cart);
+            });
         loaderImg.classList.remove('d-inline-block');
     }, 1000);
 });
@@ -40,8 +42,13 @@ function getCart(setCart = false) {
 }
 
 function add2Cart(product) {
+    if (typeof cart !== 'object' || cart === null) {
+        cart = {}; // Ініціалізуємо пустий об'єкт, якщо `cart` не є об'єктом
+    }
+
     let id = product.id;
     if (id in cart) {
+        // console.log(cart[id]['qty'], id);
         cart[id]['qty'] += 1;
     } else {
         cart[id] = product;
@@ -50,30 +57,30 @@ function add2Cart(product) {
     getCart(cart);
     getCartSum(cart);
     productQty(cart);
-    cartContent(cart)
+    cartContent(cart);
 }
 
 function getCartSum(items) {
     let cartSum = Object.entries(items).reduce(function (total, values) {
         const [key, value] = values;
-        console.log(value);
-        return isNaN(total + (value['qty'] * value['price'])) ? 0 : total + (value['qty'] * value['price']);
+        return total + (value['qty'] * value['price']);
     }, 0);
     document.querySelector('.cart-sum').innerText = cartSum + '$';
     return cartSum;
 }
 
 function productQty(items) {
+    if (typeof items !== 'object' || items === null) {
+        return;
+    }
     document.querySelectorAll('.product-cart-qty').forEach(item => {
         let id = item.dataset.id;
         if (id in items) {
             item.innerText = items[id]['qty'];
         } else {
             item.innerText = '';
-
         }
     })
-
 }
 
 function cartContent(items) {
@@ -84,7 +91,7 @@ function cartContent(items) {
         tg.MainButton.show();
         tg.MainButton.setParams({
             text: `CHECKOUT: ${getCartSum(items)}$`,
-            color: '#997305'
+            color: '#d7b300'
         });
         cartTable.classList.remove('d-none');
         cartEmpty.classList.remove('d-block');
@@ -111,15 +118,12 @@ function cartContent(items) {
     }
 }
 
-let cart = getCart();
 
-function updateCart() {
-    getCartSum(cart);
-    productQty(cart);
-    cartContent(cart)
-}
+getCartSum(cart);
+productQty(cart);
+cartContent(cart);
 
-updateCart();
+// Add listener for add product
 productsContainer.addEventListener('click', (e) => {
     if (e.target.classList.contains('add2cart')) {
         e.preventDefault();
@@ -131,15 +135,47 @@ productsContainer.addEventListener('click', (e) => {
         }, 1000);
     }
 });
-cartTable.addEventListener('click', (ev) => {
-    const target = ev.target.closest('.del-item');
+
+// Add listener for delete product
+cartTable.addEventListener('click', (e) => {
+    const target = e.target.closest('.del-item');
     if (target) {
         let id = target.parentElement.dataset.id;
         target.parentElement.parentElement.classList.add('animate__zoomOut');
         setTimeout(() => {
             delete cart[id];
-            getCart(true);
-            updateCart();
-        }, 300)
+            getCart(cart);
+            getCartSum(cart);
+            productQty(cart);
+            cartContent(cart);
+        }, 300);
     }
-})
+
+});
+
+tg.MainButton.onClick(() => {
+    // alert(tg.initDataUnsafe.query_id);
+    // console.log(tg);
+    fetch('../index.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify({
+            query_id: tg.initDataUnsafe.query_id,
+            user: tg.initDataUnsafe.user,
+            cart: cart,
+            total_sum: getCartSum(cart)
+        })
+    })
+        .then(response => {
+            // Отримали реальний об'єкт Response, інтерпретатор не використовує fakeResponse
+            // Робимо з ним потрібні дії
+            console.log(response); // Виведе статус, наприклад 200
+            return response.json();
+        })
+        .then(data => {
+            // Отримали декодований JSON з відповіді сервера
+            console.log(data); // Виведе дані з відповіді сервера
+        });
+});

@@ -1,10 +1,9 @@
 <?php
 
-error_reporting(E_ALL);
-
-ini_set('log_errors', 1);
-
-ini_set('error_log', 'errors_log');
+error_reporting(-1);
+ini_set('display_errors', 0);
+ini_set('log_errors', 'on');
+ini_set('error_log', __DIR__ . '/errors.log');
 
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config.php';
@@ -23,9 +22,18 @@ $telegram = new \Telegram\Bot\Api(TOKEN);
 $update = $telegram->getWebhookUpdate();
 debug($update);
 
-$chat_id = $update['message']['chat']['id'] ?? 0;
+//$chat_id = $update['message']['chat']['id'] ?? 0;
 $text = $update['message']['text'] ?? '';
 $name = $update['message']['from']['first_name'] ?? 'Guest';
+
+if (isset($update['message']['chat']['id'])) {
+    $chat_id = $update['message']['chat']['id'];
+} elseif (isset($update['user']['id'])) {
+    $chat_id = (int)$update['user']['id'];
+    $query_id = $update['query_id'] ?? '';
+    $cart = $update['cart'] ?? [];
+    $total_sum = $update['total_sum'] ?? 0;
+}
 
 if (!$chat_id) {
     die;
@@ -46,7 +54,7 @@ if ($text == '/start') {
         'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($inline_keyboard1),
     ]);
 } elseif ($text == $phrases['btn_unsubscribe']) {
-    if (remove_subscriber($chat_id)) {
+    if (delete_subscriber($chat_id)) {
         $telegram->sendMessage([
             'chat_id' => $chat_id,
             'text' => $phrases['success_unsubscribe'],
@@ -58,7 +66,7 @@ if ($text == '/start') {
             'chat_id' => $chat_id,
             'text' => $phrases['error_unsubscribe'],
             'parse_mode' => 'HTML',
-            'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($keyboard1),
+            'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($keyboard2),
         ]);
     }
 } elseif (isset($update['message']['web_app_data'])) {
@@ -89,6 +97,9 @@ if ($text == '/start') {
             'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($keyboard1),
         ]);
     }
+} elseif (!empty($query_id)) {
+    echo json_encode(['res' => true, 'answer' => 'OK']);
+    die;
 } else {
     $telegram->sendMessage([
         'chat_id' => $chat_id,
