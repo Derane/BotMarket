@@ -98,7 +98,12 @@ if ($text == '/start') {
         ]);
     }
 } elseif (!empty($query_id)) {
-    echo json_encode(['res' => true, 'answer' => 'OK']);
+   $telegram->sendMessage([
+       'chat_id' => $chat_id,
+      'text' => "Sum $total_sum, Cart: " . PHP_EOL . "<pre>" . print_r($cart, true) . " </pre>",
+       'parse_mod' => 'HTML'
+   ]);
+    echo json_encode(['res' => false, 'answer' => 'err']);
     die;
 } else {
     $telegram->sendMessage([

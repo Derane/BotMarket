@@ -177,5 +177,11 @@ tg.MainButton.onClick(() => {
         .then(data => {
             // Отримали декодований JSON з відповіді сервера
             console.log(data); // Виведе дані з відповіді сервера
+            if (data.res) {
+                alert(data.answer)
+                tg.close()
+            } else {
+                alert(data.answer);
+            }
         });
 });
