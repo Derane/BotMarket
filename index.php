@@ -98,12 +98,33 @@ if ($text == '/start') {
         ]);
     }
 } elseif (!empty($query_id) && !empty($cart) && !empty($total_sum)) {
-   $telegram->sendMessage([
-       'chat_id' => $chat_id,
-      'text' => "Sum $total_sum, Cart: " . PHP_EOL . "<pre>" . print_r($cart, true) . " </pre>",
-       'parse_mod' => 'HTML'
-   ]);
-    echo json_encode(['res' => false, 'answer' => 'err']);
+    if (check_cart($cart, $total_sum)) {
+        if (!add_order($chat_id, $update)) {
+            $telegram->sendMessage([
+                'chat_id' => $chat_id,
+                'text' => "Error add order",
+                'parse_mode' => 'HTML',
+            ]);
+            $res = ['res' => false, 'answer' => 'Cart Error'];
+            echo json_encode($res);
+            die;
+        }
+        $telegram->sendMessage([
+            'chat_id' => $chat_id,
+            'text' => "Order added",
+            'parse_mode' => 'HTML',
+        ]);
+        $res = ['res' => true, 'answer' => 'Order added'];
+    } else {
+        $telegram->sendMessage([
+            'chat_id' => $chat_id,
+            'text' => "Cart Error",
+            'parse_mode' => 'HTML',
+        ]);
+        $res = ['res' => false, 'answer' => 'Cart Error'];
+    }
+
+    echo json_encode($res);
     die;
 } else {
     $telegram->sendMessage([
@@ -112,3 +133,4 @@ if ($text == '/start') {
         'parse_mode' => 'HTML',
     ]);
 }
+

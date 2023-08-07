@@ -168,18 +168,12 @@ tg.MainButton.onClick(() => {
             total_sum: getCartSum(cart)
         })
     })
-        .then(response => {
-            // Отримали реальний об'єкт Response, інтерпретатор не використовує fakeResponse
-            // Робимо з ним потрібні дії
-            console.log(response); // Виведе статус, наприклад 200
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            // Отримали декодований JSON з відповіді сервера
-            console.log(data); // Виведе дані з відповіді сервера
+            console.log(data);
             if (data.res) {
-                alert(data.answer)
-                tg.close()
+                alert(data.answer);
+                tg.close();
             } else {
                 alert(data.answer);
             }
