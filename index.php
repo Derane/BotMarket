@@ -97,7 +97,7 @@ if ($text == '/start') {
             'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($keyboard1),
         ]);
     }
-} elseif (!empty($query_id)) {
+} elseif (!empty($query_id) && !empty($cart) && !empty($total_sum)) {
    $telegram->sendMessage([
        'chat_id' => $chat_id,
       'text' => "Sum $total_sum, Cart: " . PHP_EOL . "<pre>" . print_r($cart, true) . " </pre>",
