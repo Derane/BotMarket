@@ -20,7 +20,6 @@ require_once __DIR__ . '/functions.php';
 
 $telegram = new \Telegram\Bot\Api(TOKEN);
 $update = $telegram->getWebhookUpdate();
-debug($update);
 
 //$chat_id = $update['message']['chat']['id'] ?? 0;
 $text = $update['message']['text'] ?? '';
@@ -33,6 +32,9 @@ if (isset($update['message']['chat']['id'])) {
     $query_id = $update['query_id'] ?? '';
     $cart = $update['cart'] ?? [];
     $total_sum = $update['total_sum'] ?? 0;
+    $total_sum = (int)$total_sum;
+} elseif (isset($update['pre_checkout_query']['id'])) {
+    $chat_id = $update['pre_checkout_query']['id'];
 }
 
 if (!$chat_id) {
@@ -40,7 +42,7 @@ if (!$chat_id) {
 }
 
 if ($text == '/start') {
-    $keyboard = check_chat_id($chat_id) ? $keyboard2 : $keyboard1;
+    $keyboard = checkChatId($chat_id) ? $keyboard2 : $keyboard1;
     $telegram->sendMessage([
         'chat_id' => $chat_id,
         'text' => sprintf($phrases['start'], $name),
@@ -54,7 +56,7 @@ if ($text == '/start') {
         'reply_markup' => new \Telegram\Bot\Keyboard\Keyboard($inline_keyboard1),
     ]);
 } elseif ($text == $phrases['btn_unsubscribe']) {
-    if (delete_subscriber($chat_id)) {
+    if (deleteSubscriber($chat_id)) {
         $telegram->sendMessage([
             'chat_id' => $chat_id,
             'text' => $phrases['success_unsubscribe'],
@@ -73,8 +75,8 @@ if ($text == '/start') {
     $btn = $update['message']['web_app_data']['button_text'];
     $data = json_decode($update['message']['web_app_data']['data'], 1);
 
-    if (!check_chat_id($chat_id) && !empty($data['name']) && !empty($data['email'])) {
-        if (add_subscriber($chat_id, $data)) {
+    if (!checkChatId($chat_id) && !empty($data['name']) && !empty($data['email'])) {
+        if (addSubscriber($chat_id, $data)) {
             $telegram->sendMessage([
                 'chat_id' => $chat_id,
                 'text' => $phrases['success_subscribe'],
@@ -98,34 +100,72 @@ if ($text == '/start') {
         ]);
     }
 } elseif (!empty($query_id) && !empty($cart) && !empty($total_sum)) {
-    if (check_cart($cart, $total_sum)) {
-        if (!add_order($chat_id, $update)) {
+    debug($cart);
+    if (checkCart($cart, $total_sum)) {
+        if (!$order_id = addOrder($chat_id, $update)) {
             $telegram->sendMessage([
                 'chat_id' => $chat_id,
                 'text' => "Error add order",
                 'parse_mode' => 'HTML',
             ]);
-            $res = ['res' => false, 'answer' => 'Cart Error'];
+            $res = ['res' => false, 'answer' => 'Cart Error in order'];
             echo json_encode($res);
             die;
         }
-        $telegram->sendMessage([
-            'chat_id' => $chat_id,
-            'text' => "Order added",
-            'parse_mode' => 'HTML',
-        ]);
-        $res = ['res' => true, 'answer' => 'Order added'];
+
+        $order_products = [];
+        foreach ($cart as $item) {
+            $order_products[] = [
+                'label' => "{$item['title']} x {$item['qty']}",
+                'amount' => $item['price'] * $item['qty'],
+            ];
+        }
+
+        try {
+            $telegram->sendInvoice([
+                'chat_id' => $chat_id,
+                'title' => "Order № {$order_id}",
+                'description' => "Payment",
+                'payload' => $order_id,
+                'provider_token' => STRIPE_TOKEN,
+                'currency' => 'USD',
+                'prices' => $order_products
+            ]);
+            $res = ['res' => true];
+            echo json_encode($res);
+            die;
+        } catch (\Telegram\Bot\Exceptions\TelegramSDKException $e) {
+            $res = ['res' => false, 'answer' => $e->getMessage()];
+            echo json_encode($res);
+            die;
+        }
     } else {
         $telegram->sendMessage([
             'chat_id' => $chat_id,
             'text' => "Cart Error",
             'parse_mode' => 'HTML',
         ]);
-        $res = ['res' => false, 'answer' => 'Cart Error'];
+        $res = ['res' => false, 'answer' => 'Cart Error in check'];
     }
 
     echo json_encode($res);
     die;
+} elseif (isset($update['pre_checkout_query'])) {
+    $telegram->answerPreCheckoutQuery([
+        'pre_checkout_query_id' => $chat_id,
+        'ok' => true,
+    ]);
+} elseif (isset($update['message']['successful_payment'])) {
+    $order_id = $update['message']['successful_payment']['invoice_payload'];
+    $payment_id = $update['message']['successful_payment']['provider_payment_charge_id'];
+    $sum = $update['message']['successful_payment']['total_amount'] / 100;
+    $curr = $update['message']['successful_payment']['currency'];
+    toggleOrderStatus($order_id, $payment_id);
+    $telegram->sendMessage([
+        'chat_id' => $chat_id,
+        'text' => "Payment for order #{$order_id} final sum: {$sum} {$curr}",
+        'parse_mode' => 'HTML',
+    ]);
 } else {
     $telegram->sendMessage([
         'chat_id' => $chat_id,
@@ -133,4 +173,3 @@ if ($text == '/start') {
         'parse_mode' => 'HTML',
     ]);
 }
-
