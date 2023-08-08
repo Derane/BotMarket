@@ -10,7 +10,7 @@
                 <?= $product['title'] ?>
             </p>
             <p class="product-price">
-                <?= $product['price'] ?>$
+                <?= $product['price'] / 100 ?>$
             </p>
             <div class="d-grid gap-2 mt-2">
                 <button class="btn btn-warning add2cart animate__animated"

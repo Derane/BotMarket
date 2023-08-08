@@ -8,8 +8,8 @@ if (isset($_GET['page'])) {
     if ($page < 1) {
         $page = 1;
     }
-    $start = get_start($page, $per_page);
-    $products = get_products($start, $per_page);
+    $start = getStart($page, $per_page);
+    $products = getProducts($start, $per_page);
     ob_start();
     foreach ($products as $product) {
         require __DIR__ . '/product_tpl.php';
@@ -19,8 +19,8 @@ if (isset($_GET['page'])) {
     die;
 } else {
     $page = 1;
-    $start = get_start($page, $per_page);
-    $products = get_products($start, $per_page);
+    $start = getStart($page, $per_page);
+    $products = getProducts($start, $per_page);
 }
 ?>
 <!doctype html>

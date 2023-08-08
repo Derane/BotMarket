@@ -6,10 +6,9 @@ const loaderBtn = document.getElementById('loader-btn');
 const loaderImg = document.getElementById('loader-img');
 const cartTable = document.querySelector('table');
 let page = 1;
-let cart = getCart();
 
 async function getProducts() {
-    const res = await fetch(`page2.php?page=${page}`);
+    const res = await fetch(`page1.php?page=${page}`);
     return res.text();
 }
 
@@ -42,10 +41,6 @@ function getCart(setCart = false) {
 }
 
 function add2Cart(product) {
-    if (typeof cart !== 'object' || cart === null) {
-        cart = {}; // Ініціалізуємо пустий об'єкт, якщо `cart` не є об'єктом
-    }
-
     let id = product.id;
     if (id in cart) {
         // console.log(cart[id]['qty'], id);
@@ -65,14 +60,11 @@ function getCartSum(items) {
         const [key, value] = values;
         return total + (value['qty'] * value['price']);
     }, 0);
-    document.querySelector('.cart-sum').innerText = cartSum + '$';
+    document.querySelector('.cart-sum').innerText = cartSum / 100 + '$';
     return cartSum;
 }
 
 function productQty(items) {
-    if (typeof items !== 'object' || items === null) {
-        return;
-    }
     document.querySelectorAll('.product-cart-qty').forEach(item => {
         let id = item.dataset.id;
         if (id in items) {
@@ -90,7 +82,7 @@ function cartContent(items) {
     if (qty) {
         tg.MainButton.show();
         tg.MainButton.setParams({
-            text: `CHECKOUT: ${getCartSum(items)}$`,
+            text: `CHECKOUT: ${getCartSum(items) / 100}$`,
             color: '#d7b300'
         });
         cartTable.classList.remove('d-none');
@@ -104,7 +96,7 @@ function cartContent(items) {
     <td><img src="img/${items[key]['img']}" class="cart-img" alt=""></td>
     <td>${items[key]['title']}</td>
     <td>${items[key]['qty']}</td>
-    <td>${items[key]['price']}</td>
+    <td>${items[key]['price'] / 100}</td>
     <td data-id="${key}"><button class="btn del-item">🗑</button></td>
 </tr>
 `;
@@ -118,7 +110,7 @@ function cartContent(items) {
     }
 }
 
-
+let cart = getCart();
 getCartSum(cart);
 productQty(cart);
 cartContent(cart);
@@ -154,8 +146,6 @@ cartTable.addEventListener('click', (e) => {
 });
 
 tg.MainButton.onClick(() => {
-    // alert(tg.initDataUnsafe.query_id);
-    // console.log(tg);
     fetch('../index.php', {
         method: 'POST',
         headers: {
@@ -172,7 +162,10 @@ tg.MainButton.onClick(() => {
         .then(data => {
             console.log(data);
             if (data.res) {
-                alert(data.answer);
+                cart = getCart({});
+                getCartSum(cart);
+                productQty(cart);
+                cartContent(cart);
                 tg.close();
             } else {
                 alert(data.answer);
