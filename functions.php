@@ -9,16 +9,8 @@ function debug($data, $log = true): void
     }
 }
 
-function send_request($method = '', $params = []): mixed
-{
-    $url = BASE_URL . $method;
-    if (!empty($params)) {
-        $url .= '?' . http_build_query($params);
-    }
-    return json_decode(file_get_contents($url));
-}
 
-function check_chat_id(int $chat_id): bool
+function checkChatId(int $chat_id): bool
 {
     global $pdo;
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM subscribers WHERE chat_id = ?");
@@ -26,21 +18,21 @@ function check_chat_id(int $chat_id): bool
     return (bool)$stmt->fetchColumn();
 }
 
-function add_subscriber(int $chat_id, array $data): bool
+function addSubscriber(int $chat_id, array $data): bool
 {
     global $pdo;
     $stmt = $pdo->prepare("INSERT INTO subscribers (chat_id, name, email) VALUES (?, ?, ?)");
     return $stmt->execute([$chat_id, $data['name'], $data['email']]);
 }
 
-function delete_subscriber(int $chat_id): bool
+function deleteSubscriber(int $chat_id): bool
 {
     global $pdo;
     $stmt = $pdo->prepare("DELETE FROM subscribers WHERE chat_id = ?");
     return $stmt->execute([$chat_id]);
 }
 
-function get_products(int $start, int $per_page): array
+function getProducts(int $start, int $per_page): array
 {
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM products LIMIT $start, $per_page");
@@ -48,12 +40,12 @@ function get_products(int $start, int $per_page): array
     return $stmt->fetchAll();
 }
 
-function get_start(int $page, int $per_page): int
+function getStart(int $page, int $per_page): int
 {
     return ($page - 1) * $per_page;
 }
 
-function check_cart(array $cart, int $total_sum): bool
+function checkCart(array $cart, int $total_sum): bool
 {
     global $pdo;
     $ids = array_keys($cart);
@@ -62,35 +54,42 @@ function check_cart(array $cart, int $total_sum): bool
     $stmt = $pdo->prepare("SELECT id, price FROM products WHERE id IN ($in_placeholders)");
     $stmt->execute($ids);
     $products = $stmt->fetchAll();
-
+    debug($in_placeholders);
+    debug($products);
     if (count($products) != count($ids)) {
         return false;
     }
 
     $sum = 0;
     foreach ($products as $product) {
-        if (!isset($cart[$product['id']]) || ($cart[$product['id']]['price'] != $product['price'])) {
-            return false;
-        }
         $sum += $product['price'] * $cart[$product['id']]['qty'];
     }
 
     return $sum == $total_sum;
 }
-function add_order(int $chat_id, \Telegram\Bot\Objects\Update $update): bool
+
+function addOrder(int $chatId, \Telegram\Bot\Objects\Update $update): bool|int
 {
     global $pdo;
     $stmt = $pdo->prepare("INSERT INTO orders (chat_id, query_id, total_sum) VALUES (?, ?, ?)");
-    $stmt->execute([$chat_id, $update['query_id'], $update['total_sum']]);
+    $stmt->execute([$chatId, $update['query_id'], $update['total_sum']]);
     $order_id = $pdo->lastInsertId();
 
-    $sql_part = '';
+    $sqlPart = '';
     $binds = [];
     foreach ($update['cart'] as $item) {
-        $sql_part .= "(?,?,?,?,?),";
-        $binds = array_merge($binds, [$order_id, $item['product_id'], $item['title'], $item['price'], $item['qty']]);
+        $sqlPart .= "(?,?,?,?,?),";
+
+        $binds = array_merge($binds, [$order_id, $item['id'], $item['title'], $item['price'], $item['qty']]);
     }
-    $sql_part = rtrim($sql_part, ','); // (?,?,?,?,?),(?,?,?,?,?),(?,?,?,?,?)
-    $stmt = $pdo->prepare("INSERT INTO order_products (order_id, product_id, title, price, qty) VALUES $sql_part");
-    return $stmt->execute($binds);
+    $sqlPart = rtrim($sqlPart, ','); // (?,?,?,?,?),(?,?,?,?,?),(?,?,?,?,?)
+    $stmt = $pdo->prepare("INSERT INTO order_products (order_id, product_id, title, price, qty) VALUES $sqlPart");
+    return $stmt->execute($binds) ? $order_id : false;
+}
+
+function toggleOrderStatus(int $orderId, string $paymentId): bool
+{
+    global $pdo;
+    $statement = $pdo->prepare("UPDATE orders SET status = 1, payment_id = ? WHERE id = ?");
+    return $statement->execute([$paymentId, $orderId]);
 }
