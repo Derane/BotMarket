@@ -5,6 +5,8 @@ const TOKEN = '6395924254:AAEEzoOFp1qilwVkuMMtRgXiElMIILysDz0';
 const WEBAPP1 = 'https://weather3252.fun/bots/2/web-apps/page.php';
 const WEBAPP2 = 'https://weather3252.fun/bots/2/web-apps/page1.php';
 
+const STRIPE_TOKEN = '284685063:TEST:ZDAzY2M2N2UwZmJj';
+
 $db = [
     'host' => 'localhost',
     'user' => 'root',
