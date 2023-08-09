@@ -43,7 +43,6 @@ function getCart(setCart = false) {
 function add2Cart(product) {
     let id = product.id;
     if (id in cart) {
-        // console.log(cart[id]['qty'], id);
         cart[id]['qty'] += 1;
     } else {
         cart[id] = product;
@@ -115,7 +114,6 @@ getCartSum(cart);
 productQty(cart);
 cartContent(cart);
 
-// Add listener for add product
 productsContainer.addEventListener('click', (e) => {
     if (e.target.classList.contains('add2cart')) {
         e.preventDefault();
@@ -128,7 +126,6 @@ productsContainer.addEventListener('click', (e) => {
     }
 });
 
-// Add listener for delete product
 cartTable.addEventListener('click', (e) => {
     const target = e.target.closest('.del-item');
     if (target) {

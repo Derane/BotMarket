@@ -23,11 +23,6 @@
 <body>
 
 <div class="container">
-    <!--<button id="toggle-main-btn">Main Button</button>
-    <button id="close-app">Close</button>
-    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium architecto doloribus dolorum ea inventore
-        itaque modi reprehenderit, sequi suscipit. Assumenda consequuntur ducimus eum pariatur, placeat quae velit
-        voluptatem. Autem, ipsum!</p>-->
     <h3>Subscribe</h3>
     <form class="row g-3 needs-validation" novalidate>
         <div class="col-md-6">
@@ -44,34 +39,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const tg = window.Telegram.WebApp;
-    // console.log(tg);
     tg.ready();
     tg.expand();
-
-    /*document.getElementById('close-app').addEventListener('click', () => {
-        tg.close();
-    });
-
-    document.getElementById('toggle-main-btn').addEventListener('click', () => {
-        if (tg.MainButton.isVisible) {
-            tg.MainButton.hide();
-        } else {
-            tg.MainButton.show();
-            tg.MainButton.setParams({
-                text: "Send Form",
-                color: '#d260aa',
-                text_color: '#fff'
-            });
-        }
-    });*/
-
-    // tg.MainButton.show();
-    /*tg.MainButton.onClick(() => {
-        tg.showAlert('Hello');
-    });*/
-    /*tg.onEvent('mainButtonClicked', () => {
-        tg.showAlert('Hello 2');
-    });*/
 
     const nameInput = document.getElementById('name');
     const emailInput = document.getElementById('email');
