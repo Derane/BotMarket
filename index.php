@@ -37,10 +37,6 @@ if (isset($update['message']['chat']['id'])) {
     $chat_id = $update['pre_checkout_query']['id'];
 }
 
-if (!$chat_id) {
-    die;
-}
-
 if ($text == '/start') {
     $keyboard = checkChatId($chat_id) ? $keyboard2 : $keyboard1;
     $telegram->sendMessage([
